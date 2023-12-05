@@ -36,7 +36,7 @@ services:
 
   ivrmock:
     build:
-      context: ../../ivrMock
+      context: ../../vonage-calls-sample-mock-server
       dockerfile: Dockerfile
     ports:
       - "7000:7000"
