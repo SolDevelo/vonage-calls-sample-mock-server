@@ -80,6 +80,8 @@ adherenceFeedbackService:messages.adherenceFeedbackService,conceptService:concep
 h) 
 ```
 * Save provider configuration
+* Create renderer in http://localhost:8080/openmrs/owa/callflows/index.html#/renderers 
+(renderer name: nexmo, MIME type: application/json)
 * Load the callflows by uploader in `http://localhost:8080/openmrs/module/metadatasharing/import/list.form`
 * Click `import package`
 * Browse the proper package in ZIP format
