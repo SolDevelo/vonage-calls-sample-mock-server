@@ -114,6 +114,76 @@ h)
 	|exit|
 #end
 ```
+* In the same page with callflows design in entry-handler replace code with:
+```
+::::::::::::::::::::::::::::::::
+::::: MainFlow params logger::::
+phone:::::::::::: $phone
+session.callid::: $params.get("session.callerid")
+::::::::::::::::::::::::::::::::
+params::::::::::: $params
+messages::::::::: $messages
+::::::::::::::::::::::::::::::::
+personId::::::::: $personId
+actorType:::::::: $actorType
+actorId:::::::::: $actorId
+refKey::::::::::: $refKey
+internal::::::::: $internal
+::::::::::::::::::::::::::::::::
+
+#set($callId = $internal.callId)
+#set($pinAttempts = 0)
+#set($maxPinAttempt = 3)
+
+#if($refKey)
+	#set($sourceId = $refKey)
+  #set($sourceType = "SCHEDULED_SERVICE_GROUP")
+  #set($serviceGroup = $messagingGroupService.getById($Integer.parseInt($refKey)))
+  #set($patientId = $serviceGroup.getPatient().personId)
+patientId:::::::: $patientId
+service group:::: $sourceId
+#else
+	#set($sourceId = $callId)
+  #set($sourceType = "OTHER")
+  #set($patientId = $actorId)
+#end
+
+#if(!$actorId && $personId)
+	#set ($actorId = $personId)
+#elseif($actorId)	
+	#set ($actorId = $Integer.parseInt($actorId)) 
+#end
+
+actorId:::::::::: $actorId
+
+#set ($person = $personDAO.getPerson($actorId))
+
+#if($person)
+	  #set($personStatus = "DEACTIVATED")
+    #set($maxPinAttempt = 3)
+    #set($pinAttempts = 0)
+:::::::::::::::::::::::::::::::
+person attributes:::::::::::::::
+  	#foreach($attribute in $person.getActiveAttributes())
+::::::::::::::::: $attribute.attributeType.name
+::::::::::::::::: $attribute.value
+::::::::::::::::: $attribute.voided
+      #if($attribute.attributeType.personAttributeTypeId == 11 && !$attribute.voided)
+      	#set($personStatus = $attribute.value)
+personStatus::::: $personStatus
+      #end
+    #end
+:::::::::::::::::::::::::::::::
+|PinFlow.|
+#else
+|exit|
+#end
+```
+* Go into `Manage Global Properties` in `System Administration`
+* Add value for message.callConfig: nexmo
+* Update value for `messages.statusesEndingCallflow` GP to replace with ‘ANSWERED,UNANSWERED,MACHINE,BUSY,CANCELLED,FAILED,REJECTED,NO_ANSWER,TIMEOUT,completed,UNKNOWN,DISCONNECTED’
+* Update value for ‘messages.defaultFlow’ GP to add ‘MainFlow’
+* (optional: for debug purposes) if you want to have more logs with DEBUG status for calls: please update log.level GP with ‘org.openmrs.api:info,org.openmrs.module.callflows:debug’. In that case you have to  either execute ‘runInDevMode.sh’ again or restart the web container.
 * Now you should have configured calls based on the IVR mocked solution. You can test this by creating visit for patient.
 
 ## License
